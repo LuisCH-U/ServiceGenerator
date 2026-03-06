@@ -32,6 +32,8 @@ namespace ServiceGenerator
             {
                 try
                 {
+                    Console.WriteLine("[INFO] Obteniendo comprobantes pendientes...");
+                    _logger.LogInformation("[INFO] Obteniendo comprobantes pendientes...");
                     var comprobantes = await _comprobanteRepository.ComprobantesAsync();
                     Console.WriteLine($"[INFO] Comprobantes obtenidos: {comprobantes.Count}");
                     _logger.LogInformation("[INFO] Comprobantes obtenidos: {Count}", comprobantes.Count);
@@ -88,16 +90,16 @@ namespace ServiceGenerator
                 _logger.LogInformation("[INFO] Procesando comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
 
                 DatosComprobanteModel data = await _comprobanteRepository.ObtenerComprobantesDatosAsync(comprobante.TipoDocumento ?? "", comprobante.NumeroDocumento ?? "", comprobante.Sucursal ?? "");
-                Console.WriteLine($"[INFO] Datos obtenidos para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Datos obtenidos para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                //Console.WriteLine($"[INFO] Datos obtenidos para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Datos obtenidos para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
 
-                Console.WriteLine($"[INFO] Obteniendo el template.html para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Obteniendo el template.html para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                //Console.WriteLine($"[INFO] Obteniendo el template.html para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Obteniendo el template.html para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
                 var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "template.html");
                 var html = await File.ReadAllTextAsync(templatePath, stoppingToken);
 
-                Console.WriteLine($"[INFO] Reemplazando datos en el template para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Reemplazando datos en el template para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                //Console.WriteLine($"[INFO] Reemplazando datos en el template para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Reemplazando datos en el template para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
                 html = html.Replace("{{NumeroDocumento}}", data?._headerData?.NumeroDocumento ?? "");
                 html = html.Replace("{{companybusinessName}}", data?._companyData?.Razon_Social ?? "");
                 html = html.Replace("{{companyData.address}}", data?._companyData?.Direccion?.ToString() ?? "");
@@ -117,43 +119,43 @@ namespace ServiceGenerator
 
                 var rows = "";
                 
-                Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                //Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
                 //foreach (var item in data._detailData)
                 //{
                 //    rows += $"<tr><td>{item.Concepto}</td><td>{item.Monto}</td></tr>";
                 //}
 
-                Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                //Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
                 html = html.Replace("{{Rows}}", rows);
 
-                Console.WriteLine($"[INFO] Creando directorio de salida si no existe para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Creando directorio de salida si no existe para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                //Console.WriteLine($"[INFO] Creando directorio de salida si no existe para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Creando directorio de salida si no existe para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
                 Directory.CreateDirectory(_pdfOptionsRoute.OutputRoot);
 
-                Console.WriteLine($"[INFO] Generando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Generando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                var fileName = data._headerData?.NumeroDocumento ?? $"{comprobante.NumeroDocumento}";
+                //Console.WriteLine($"[INFO] Generando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Generando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                var fileName = data?._headerData?.NumeroDocumento ?? $"{comprobante.NumeroDocumento}";
 
-                Console.WriteLine($"[INFO] Sanitizando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
-                _logger.LogInformation("[INFO] Sanitizando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                //Console.WriteLine($"[INFO] Sanitizando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
+                //_logger.LogInformation("[INFO] Sanitizando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
                 foreach (var c in Path.GetInvalidFileNameChars())
                 {
                     fileName = fileName.Replace(c, '_');
                 }
 
-                Console.WriteLine($"[INFO] Ruta final del PDF para comprobante: {comprobante.NumeroDocumento} será: {fileName}.pdf");
-                _logger.LogInformation("[INFO] Ruta final del PDF para comprobante: {NumeroDocumento} será: {FileName}.pdf", comprobante.NumeroDocumento, fileName);
-                var pdfPath = Path.Combine(_pdfOptionsRoute.OutputRoot, $"{fileName}.pdf");
+                //Console.WriteLine($"[INFO] Ruta final del PDF para comprobante: {comprobante.NumeroDocumento} será: {fileName}.pdf");
+                //_logger.LogInformation("[INFO] Ruta final del PDF para comprobante: {NumeroDocumento} será: {FileName}.pdf", comprobante.NumeroDocumento, fileName);
+                var pdfPath = Path.Combine(_pdfOptionsRoute.OutputRoot, $"{fileName.Trim()}.pdf");
 
-                Console.WriteLine($"[INFO] Generando PDF para comprobante: {comprobante.NumeroDocumento} en ruta: {pdfPath}");
-                _logger.LogInformation("[INFO] Generando PDF para comprobante: {NumeroDocumento} en ruta: {Ruta}", comprobante.NumeroDocumento, pdfPath);
+                //Console.WriteLine($"[INFO] Generando PDF para comprobante: {comprobante.NumeroDocumento} en ruta: {pdfPath}");
+                //_logger.LogInformation("[INFO] Generando PDF para comprobante: {NumeroDocumento} en ruta: {Ruta}", comprobante.NumeroDocumento, pdfPath);
                 
                 await _generarPdfService.GenerarPdf(html, pdfPath);
 
-                Console.WriteLine($"[INFO] PDF generado correctamente para comprobante: {comprobante.NumeroDocumento} en ruta: {pdfPath}");
-                _logger.LogInformation("[INFO] PDF generado correctamente para comprobante: {NumeroDocumento} en ruta: {Ruta}", comprobante.NumeroDocumento, pdfPath);
+                //Console.WriteLine($"[INFO] PDF generado correctamente para comprobante: {comprobante.NumeroDocumento} en ruta: {pdfPath}");
+                //_logger.LogInformation("[INFO] PDF generado correctamente para comprobante: {NumeroDocumento} en ruta: {Ruta}", comprobante.NumeroDocumento, pdfPath);
 
                 Console.WriteLine($"[INFO] PDF generado correctamente en: {pdfPath}");
                 _logger.LogInformation("[INFO] PDF generado correctamente en: {Ruta}", pdfPath);

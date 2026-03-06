@@ -23,7 +23,7 @@ namespace ServiceGenerator.Repository
         }
 
         public async Task<List<ComprobantesModel>> ComprobantesAsync()
-       {
+        {
             try
             {
                 using var conn = new SqlConnection(_sqlConn);
@@ -34,8 +34,8 @@ namespace ServiceGenerator.Repository
                 _logger.LogInformation("[INFO] Ejecutando el procedimiento almacenado SP_ComprobantesObtener...");
                 var res = await conn.QueryAsync<ComprobantesModel>("SP_ComprobantesObtener", commandType: System.Data.CommandType.StoredProcedure);
                 
-                Console.WriteLine("[INFO] Comprobantes obtenidos exitosamente: " + res.Count());
-                _logger.LogInformation("[INFO] Comprobantes obtenidos exitosamente: " + res.Count());
+                //Console.WriteLine("[INFO] Comprobantes obtenidos exitosamente: " + res.Count());
+                //_logger.LogInformation("[INFO] Comprobantes obtenidos exitosamente: " + res.Count());
                 
                 return res.ToList();
             }
@@ -52,11 +52,11 @@ namespace ServiceGenerator.Repository
             try
             {
                 using var conn = new SqlConnection(_sqlConn);
-                Console.WriteLine("[INFO] Conexión a la base de datos establecida exitosamente.");
-                _logger.LogInformation("[INFO] Conexión a la base de datos establecida exitosamente.");
+                //Console.WriteLine("[INFO] Conexión a la base de datos establecida exitosamente.");
+                //_logger.LogInformation("[INFO] Conexión a la base de datos establecida exitosamente.");
 
-                Console.WriteLine("[INFO] Ejecutando el procedimiento almacenado SP_ObtenerDatosComprobantes...");
-                _logger.LogInformation("[INFO] Ejecutando el procedimiento almacenado SP_ObtenerDatosComprobantes...");
+                //Console.WriteLine("[INFO] Ejecutando el procedimiento almacenado SP_ObtenerDatosComprobantes...");
+                //_logger.LogInformation("[INFO] Ejecutando el procedimiento almacenado SP_ObtenerDatosComprobantes...");
                 var param = new DynamicParameters();
                 param.Add("@TipoDocumento", typeDocument, DbType.String);
                 param.Add("@NumeroDocumento", numberDocument, DbType.String);
@@ -68,8 +68,8 @@ namespace ServiceGenerator.Repository
                 classOutComprobantes._headerData = await res.ReadFirstOrDefaultAsync<HeaderDocumentModel>();
                 classOutComprobantes._detailData = (await res.ReadAsync<DetailDocumentModel>()).ToList();
                 
-                Console.WriteLine("[INFO] Se obtuvieron los datos completos");
-                _logger.LogInformation("[INFO] Se obtuvieron lso datos completos");
+                //Console.WriteLine("[INFO] Se obtuvieron los datos completos");
+                //_logger.LogInformation("[INFO] Se obtuvieron lso datos completos");
                 
                 return classOutComprobantes;
             }
