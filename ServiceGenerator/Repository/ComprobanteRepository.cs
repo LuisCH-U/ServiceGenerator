@@ -23,24 +23,26 @@ namespace ServiceGenerator.Repository
         }
 
         public async Task<List<ComprobantesModel>> ComprobantesAsync()
-        {
+       {
             try
             {
                 using var conn = new SqlConnection(_sqlConn);
-                Console.WriteLine("Conexión a la base de datos establecida exitosamente.");
+                Console.WriteLine("[INFO] Conexión a la base de datos establecida exitosamente.");
+                _logger.LogInformation("[INFO] Conexión a la base de datos establecida exitosamente.");
 
-                Console.WriteLine("Ejecutando el procedimiento almacenado SP_ComprobantesObtener...");
+                Console.WriteLine("[INFO] Ejecutando el procedimiento almacenado SP_ComprobantesObtener...");
+                _logger.LogInformation("[INFO] Ejecutando el procedimiento almacenado SP_ComprobantesObtener...");
                 var res = await conn.QueryAsync<ComprobantesModel>("SP_ComprobantesObtener", commandType: System.Data.CommandType.StoredProcedure);
                 
-                Console.WriteLine("Comprobantes obtenidos exitosamente: " + res.Count());
-                _logger.LogInformation("Comprobantes obtenidos exitosamente: " + res.Count());
+                Console.WriteLine("[INFO] Comprobantes obtenidos exitosamente: " + res.Count());
+                _logger.LogInformation("[INFO] Comprobantes obtenidos exitosamente: " + res.Count());
                 
                 return res.ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener los comprobantes");
-                Console.WriteLine("Error al obtener los comprobantes: " + ex.Message);
+                Console.WriteLine("[ERROR] Error al obtener los comprobantes: " + ex.Message);
+                _logger.LogError(ex, "[ERROR] Error al obtener los comprobantes");
                 throw;
             }
         }
@@ -50,9 +52,11 @@ namespace ServiceGenerator.Repository
             try
             {
                 using var conn = new SqlConnection(_sqlConn);
-                Console.WriteLine("Conexión a la base de datos establecida exitosamente.");
+                Console.WriteLine("[INFO] Conexión a la base de datos establecida exitosamente.");
+                _logger.LogInformation("[INFO] Conexión a la base de datos establecida exitosamente.");
 
-                Console.WriteLine("Ejecutando el procedimiento almacenado SP_ObtenerDatosComprobantes...");
+                Console.WriteLine("[INFO] Ejecutando el procedimiento almacenado SP_ObtenerDatosComprobantes...");
+                _logger.LogInformation("[INFO] Ejecutando el procedimiento almacenado SP_ObtenerDatosComprobantes...");
                 var param = new DynamicParameters();
                 param.Add("@TipoDocumento", typeDocument, DbType.String);
                 param.Add("@NumeroDocumento", numberDocument, DbType.String);
@@ -64,15 +68,15 @@ namespace ServiceGenerator.Repository
                 classOutComprobantes._headerData = await res.ReadFirstOrDefaultAsync<HeaderDocumentModel>();
                 classOutComprobantes._detailData = (await res.ReadAsync<DetailDocumentModel>()).ToList();
                 
-                Console.WriteLine("Se obtuvieron los datos completos");
-                _logger.LogInformation("Se obtuvieron lso datos completos");
+                Console.WriteLine("[INFO] Se obtuvieron los datos completos");
+                _logger.LogInformation("[INFO] Se obtuvieron lso datos completos");
                 
                 return classOutComprobantes;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error al obtener los datos completos: " + ex.Message);
-                _logger.LogError(ex, "Error al obtener los comprobantes");
+                Console.WriteLine("[ERROR] Error al obtener los datos completos: " + ex.Message);
+                _logger.LogError(ex, "[ERROR] Error al obtener los comprobantes");
                 throw;
             }
         }

@@ -50,12 +50,12 @@ namespace ServiceGenerator.Models
 
     public class DetailDocumentModel
     {
-        public string ItemCodigo { get; set; }
-        public string Descripcion { get; set; }
-        public int CantidadPedida { get; set; }
-        public double Monto { get; set; }
+        public string? ItemCodigo { get; set; }
+        public string? Descripcion { get; set; }
+        public decimal CantidadPedida { get; set; }
+        public decimal Monto { get; set; }
 
-        public DetailDocumentModel(string ItemCodigo, string Descripcion, int CantidadPedida, double Monto)
+        public DetailDocumentModel(string ItemCodigo, string Descripcion, decimal CantidadPedida, decimal Monto)
         {
             this.ItemCodigo = ItemCodigo;
             this.Descripcion = Descripcion;

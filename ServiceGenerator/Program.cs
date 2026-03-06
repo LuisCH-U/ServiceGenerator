@@ -35,12 +35,12 @@ var host = builder.Build();
 
 try
 {
-    Log.Information("Iniciando el servicio");
+    Log.Information("[INICIO] Iniciando el servicio");
     host.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "El servicio falló al iniciarse");
+    Log.Fatal(ex, "[ERROR] El servicio falló al iniciarse");
 }
 finally
 {
