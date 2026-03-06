@@ -29,8 +29,8 @@ namespace ServiceGenerator
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Console.WriteLine("[INICIO] Worker iniciado. Esperando comprobantes...");
-            _logger.LogInformation("[INICIO] Worker iniciado. Esperando comprobantes...");
+            Console.WriteLine("[INICIO] Worker iniciado. Esperando comprobantes..." + " -> " + DateTime.Now);
+            _logger.LogInformation("[INICIO] Worker iniciado. Esperando comprobantes..." + " -> " + DateTime.Now);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -69,19 +69,19 @@ namespace ServiceGenerator
                         await Task.WhenAll(tasks);
                     }
 
-                    Console.WriteLine("[FINALIZADO] Proceso finalizado. Total registros: " + comprobantes.Count);
-                    _logger.LogInformation("[FINALIZADO] Proceso finalizado. Total registros: {Total}", comprobantes);
+                    Console.WriteLine("[FINALIZADO] Proceso finalizado. Total registros: " + comprobantes.Count + " -> " + DateTime.Now);
+                    _logger.LogInformation("[FINALIZADO] Proceso finalizado. Total registros: {Total}", comprobantes +" -> " + DateTime.Now);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("[ERROR] Error general en el worker: " + ex.Message);
-                    _logger.LogError(ex, "[ERROR] Error general en el worker");
+                    Console.WriteLine("[ERROR] Error general en el worker: " + ex.Message + " -> " + DateTime.Now);
+                    _logger.LogError(ex, "[ERROR] Error general en el worker" + " -> " + DateTime.Now);
                 }
                 finally
                 {
-                    Console.WriteLine("[INFO] Esperando 10 segundos antes de la siguiente consulta...");
-                    _logger.LogInformation("[INFO] Esperando 10 segundos antes de la siguiente consulta...");
-                    await Task.Delay(10000, stoppingToken);
+                    Console.WriteLine("[INFO] Esperando 1 Hora antes de la siguiente consulta..." + " -> " + DateTime.Now);
+                    _logger.LogInformation("[INFO] Esperando 1 Hora antes de la siguiente consulta..." + " -> " + DateTime.Now);
+                    await Task.Delay(3600000, stoppingToken);
                 }
             }
 
@@ -150,8 +150,8 @@ namespace ServiceGenerator
                 //Console.WriteLine($"[INFO] PDF generado correctamente para comprobante: {comprobante.NumeroDocumento} en ruta: {pdfPath}");
                 //_logger.LogInformation("[INFO] PDF generado correctamente para comprobante: {NumeroDocumento} en ruta: {Ruta}", comprobante.NumeroDocumento, pdfPath);
 
-                Console.WriteLine($"[INFO] PDF generado correctamente en: {pdfPath}");
-                _logger.LogInformation("[INFO] PDF generado correctamente en: {Ruta}", pdfPath);
+                Console.WriteLine($"[INFO] PDF generado correctamente en: {pdfPath}" + " -> " + DateTime.Now);
+                _logger.LogInformation("[INFO] PDF generado correctamente en: {Ruta}", pdfPath + " -> " + DateTime.Now);
             }
             catch (Exception ex)
             {
