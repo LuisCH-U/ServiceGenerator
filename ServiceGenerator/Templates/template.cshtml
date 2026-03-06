@@ -1,0 +1,676 @@
+﻿@model ServiceGenerator.Models.DatosComprobanteModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Model.headerData.NumeroDocumento</title>
+
+    <link rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+          as="style" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+          rel="stylesheet" />
+
+
+    <style>
+
+        /* Estilos base */
+
+        *, :before, :after {
+            box-sizing: border-box;
+            border-width: 0;
+            border-style: solid;
+            border-color: #eaeaea
+        }
+
+        html, :host {
+            line-height: 1.5;
+            -webkit-text-size-adjust: 100%;
+            -moz-tab-size: 4;
+            -o-tab-size: 4;
+            tab-size: 4;
+            font-family: ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji";
+            font-feature-settings: normal;
+            font-variation-settings: normal;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        body {
+            margin: 0;
+            line-height: inherit
+        }
+
+        hr {
+            height: 0;
+            color: inherit;
+            border-top-width: 1px
+        }
+
+        abbr:where([title]) {
+            -webkit-text-decoration: underline dotted;
+            text-decoration: underline dotted
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-size: inherit;
+            font-weight: inherit
+        }
+
+        a {
+            color: inherit;
+            text-decoration: inherit
+        }
+
+        b, strong {
+            font-weight: bolder
+        }
+
+        code, kbd, samp, pre {
+            font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;
+            font-feature-settings: normal;
+            font-variation-settings: normal;
+            font-size: 1em
+        }
+
+        small {
+            font-size: 80%
+        }
+
+        sub, sup {
+            font-size: 75%;
+            line-height: 0;
+            position: relative;
+            vertical-align: baseline
+        }
+
+        sub {
+            bottom: -.25em
+        }
+
+        sup {
+            top: -.5em
+        }
+
+        table {
+            text-indent: 0;
+            border-color: inherit;
+            border-collapse: collapse
+        }
+
+        button, input, optgroup, select, textarea {
+            font-family: inherit;
+            font-feature-settings: inherit;
+            font-variation-settings: inherit;
+            font-size: 100%;
+            font-weight: inherit;
+            line-height: inherit;
+            letter-spacing: inherit;
+            color: inherit;
+            margin: 0;
+            padding: 0
+        }
+
+        button, select {
+            text-transform: none
+        }
+
+        button, input:where([type=button]), input:where([type=reset]), input:where([type=submit]) {
+            -webkit-appearance: button;
+            background-color: transparent;
+            background-image: none
+        }
+
+        :-moz-focusring {
+            outline: auto
+        }
+
+        :-moz-ui-invalid {
+            box-shadow: none
+        }
+
+        progress {
+            vertical-align: baseline
+        }
+
+        ::-webkit-inner-spin-button, ::-webkit-outer-spin-button {
+            height: auto
+        }
+
+        [type=search] {
+            -webkit-appearance: textfield;
+            outline-offset: -2px
+        }
+
+        ::-webkit-search-decoration {
+            -webkit-appearance: none
+        }
+
+        ::-webkit-file-upload-button {
+            -webkit-appearance: button;
+            font: inherit
+        }
+
+        summary {
+            display: list-item
+        }
+
+        blockquote, dl, dd, h1, h2, h3, h4, h5, h6, hr, figure, p, pre {
+            margin: 0
+        }
+
+        fieldset {
+            margin: 0;
+            padding: 0
+        }
+
+        legend {
+            padding: 0
+        }
+
+        ol, ul, menu {
+            list-style: none;
+            margin: 0;
+            padding: 0
+        }
+
+        dialog {
+            padding: 0
+        }
+
+        textarea {
+            resize: vertical
+        }
+
+            input::-moz-placeholder, textarea::-moz-placeholder {
+                opacity: 1;
+                color: #7f8794
+            }
+
+            input::placeholder, textarea::placeholder {
+                opacity: 1;
+                color: #7f8794
+            }
+
+        button, [role=button] {
+            cursor: pointer
+        }
+
+        :disabled {
+            cursor: default
+        }
+
+        img, svg, video, canvas, audio, iframe, embed, object {
+            display: block;
+            vertical-align: middle
+        }
+
+        img, video {
+            max-width: 100%;
+            height: auto
+        }
+
+        [hidden]:where(:not([hidden=until-found])) {
+            display: none
+        }
+
+
+        /* Estilos base EVA */
+
+        :root {
+            font-size: 16px;
+        }
+
+        body {
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            --tw-bg-opacity: 1;
+            background-color: rgb(250 250 250 / var(--tw-bg-opacity, 1));
+            font-family: Mulish,ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji";
+            font-size: .875rem;
+            line-height: 1.25rem;
+            font-weight: 400;
+            letter-spacing: -.011em;
+            --tw-text-opacity: 1;
+            color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: Montserrat,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace
+        }
+
+
+        /* Estilos de la pagina */
+
+        .header {
+            position: sticky;
+            top: 0;
+            margin-left: auto;
+            margin-right: auto;
+            display: grid;
+            width: 100%;
+            max-width: 1280px;
+            align-items: center;
+            justify-content: space-between;
+            height: 53px
+        }
+
+            .header.new-version-2 {
+                top: 3rem
+            }
+
+        @@media (min-width: 768px) {
+            .header.new-version-2 {
+                top: 4rem
+            }
+        }
+
+        .grid-icons {
+            margin-bottom: .25rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            row-gap: .25rem;
+            -moz-column-gap: .625rem;
+            column-gap: .625rem
+        }
+
+        @@media (min-width: 768px) {
+            .grid-icons {
+                -moz-column-gap: 1rem;
+                column-gap: 1rem
+            }
+        }
+
+        .grid-icons > .icon {
+            height: 1rem
+        }
+
+        @@media (min-width: 768px) {
+            .grid-icons > .icon {
+                height: 1.5rem
+            }
+        }
+
+        .grid-icons > .icon {
+            width: auto;
+            min-width: 20px
+        }
+
+        .voucher-class {
+            margin-left: 1.25rem;
+            margin-right: 1.25rem;
+            padding: 1.25rem
+        }
+
+        @@media (min-width: 768px) {
+            .voucher-class {
+                margin-left: auto;
+                margin-right: auto;
+                margin-bottom: 2.25rem
+            }
+        }
+
+        .voucher-class {
+            min-width: 280px
+        }
+
+            .voucher-class * {
+                font-family: Montserrat,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;
+                line-height: 1.5em
+            }
+
+        .header-voucher:after {
+            content: "";
+            display: block;
+            background-color: #000;
+            height: 2px
+        }
+
+        .comprobante {
+            font-size: 8px;
+            margin-top: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            font-weight: 500
+        }
+
+        .datos {
+            display: grid
+        }
+
+            .datos p > span {
+                margin-right: .25rem;
+                font-weight: 700
+            }
+
+        thead, tbody {
+            border-top: .5px solid #7f8794;
+            border-bottom: .5px solid #7f8794
+        }
+
+        @@media (min-width: 576px) {
+            td, th {
+                padding-top: .25rem;
+                padding-bottom: .25rem
+            }
+        }
+
+        th:nth-child(2) {
+            padding-left: 1rem;
+            padding-right: 1rem
+        }
+
+        td:nth-child(2) {
+            padding-left: 1rem;
+            padding-right: 1rem;
+            text-align: right
+        }
+
+        td:nth-last-of-type(2), td:last-child {
+            text-align: center
+        }
+
+        td:last-child {
+            text-align: right
+        }
+
+        .importe {
+            float: right
+        }
+
+        @@media (min-width: 576px) {
+            .importe {
+                width: 18rem
+            }
+        }
+
+        .importe tbody {
+            border: none
+        }
+
+        .importe td {
+            padding-top: 0;
+            padding-bottom: 0
+        }
+
+        @@media (min-width: 576px) {
+            .importe td {
+                padding-top: .125rem;
+                padding-bottom: .125rem
+            }
+        }
+
+        .importe td:nth-child(2) {
+            text-align: left
+        }
+
+        .observaciones {
+            border-top: .5px solid #7f8794;
+            border-bottom: .5px solid #7f8794
+        }
+
+        @@media (min-width: 576px) {
+            .observaciones {
+                padding-top: .25rem;
+                padding-bottom: .25rem
+            }
+        }
+
+        .numeros {
+            border-top: .5px solid #7f8794
+        }
+
+        @@media (min-width: 576px) {
+            .numeros {
+                padding-top: .25rem;
+                padding-bottom: .25rem
+            }
+        }
+
+        footer {
+            font-size: 8px;
+            font-weight: 500
+        }
+
+        .text-xxs {
+            font-size: 8px
+        }
+
+        .print-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            height: 4rem;
+            width: 100%;
+            cursor: pointer;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            gap: .625rem;
+            padding-right: 1rem;
+            z-index: 60
+        }
+
+            .print-container.new-version {
+                right: 1.25rem
+            }
+
+        @@media (min-width: 768px) {
+            .print-container.new-version {
+                right: 1.5rem
+            }
+
+            .voucher-class {
+                width: 595px
+            }
+
+            .comprobante {
+                font-size: 10px
+            }
+
+            footer {
+                font-size: 10px
+            }
+
+            .print-container {
+                padding-right: 10%
+            }
+        }
+
+        @@media print {
+            .header-voucher {
+                visibility: visible
+            }
+        }
+
+        @@media print {
+
+            * {
+                background-color: #fff
+            }
+
+            header.app_layout-header, .navbar, .print-container, .section-go-back {
+                visibility: hidden;
+                display: none
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="position: relative; top: 13px;">
+        <div>
+            <header class="header section-go-back new-version-2">
+                <section style="display: grid; width: 100%; grid-template-columns: auto fit-content(100%); align-items: center; padding-left: 1.25rem; padding-right: 1.25rem;">
+                    <p style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; font-weight: 700;">
+                        <div style="height: 26px; width: 26px;"></div>
+                        Atrás
+                    </p>
+                </section>
+            </header>
+
+            <section id="section-to-print" class="voucher-class new-version-2">
+                <header class="header-voucher">
+                    <div style="display: grid; justify-content: space-between; gap: 0.5rem; grid-template-columns: fit-content(100%) auto;">
+                        <div>
+                            <img style="margin-bottom: 1rem;" src="https://eva.idat.edu.pe/icons/logo-pago-inlearning.svg" />
+                        </div>
+                        @if (Model.companyData.Marca == "idat")
+                        {
+                        <div>
+                            <img style="margin-bottom: 1rem;" src="https://eva.idat.edu.pe/icons/logo-pago-idat.svg" />
+                        </div>
+                        }
+                        @if (new[] { "corriente", "cdi", "zegel", "its" }.Contains(Model.companyData.Marca))
+                        {
+                        <div class="grid-icons">
+                            @if ((Model.headerData.EsIquitos != "0") && Model.companyData.Marca == "zegel")
+                            {
+                            <img class="icon" src="https://eva.idat.edu.pe/icons/logo-pago-zegelipae.svg" />
+                            }
+                            else
+                            {
+                            @if (Model.headerData.EsNuevaVersion == "0")
+                            {
+                            <img class="icon" src="https://eva.idat.edu.pe/icons/logo-pago-zegelipae.svg" />
+                            }
+                            else
+                            {
+                            <img class="icon" src="https://eva.idat.edu.pe/icons/logo-pago-zegel.svg" />
+                            }
+                            }
+                            <img class="icon" src="https://eva.idat.edu.pe/icons/logo-pago-its.svg" />
+                            <img class="icon" src="https://eva.idat.edu.pe/icons/logo-pago-corriente.svg" />
+                            <img class="icon" src="https://eva.idat.edu.pe/icons/logo-pago-cdi.svg" />
+                        </div>
+                        }
+                    </div>
+                </header>
+                <main class="comprobante">
+                    <section style="display: grid; justify-content: space-between; grid-template-columns: auto fit-content(100%);">
+                        <div>
+                            <h1 style="font-weight: 700;">@Model.companyData.Razon_Social</h1>
+                            <p>@Model.companyData.Direccion</p>
+                            <p>@Model.companyData.Telefono</p>
+                            <p style="text-transform: capitalize;">@Model.headerData.Sededireccion</p>
+                            <p>@Model.headerData.SedeTelefono</p>
+                        </div>
+                        <div style="text-align: right; font-size: 8px;">
+                            <div style="display: flex; justify-content: flex-end; font-weight: 700;">
+                                <p style="width: 11rem;">
+                                    @Model.headerData.TipoDocumento
+                                    <br>
+                                    ELECTRÓNICA
+                                </p>
+                            </div>
+                            <p style="padding-top: 0.25rem">R.U.C: @Model.companyData.Ruc</p>
+                            <p>@Model.headerData.NumeroDocumento</p>
+                        </div>
+                    </section>
+                    <section style="margin-top: 1.25rem; margin-bottom: 1.25rem;">@Model.headerData.Sede</section>
+                    <section class="datos">
+                        <div style="margin-bottom: 0.625rem;">
+                            <p><span>Cliente / Razón social:</span>@Model.headerData.RazonSocial</p>
+                            <p><span>DNI/RUC:</span>@Model.headerData.Ruc</p>
+                            <p><span>Fecha de emisión:</span>@Model.headerData.FechaDocumento</p>
+                            <p><span>Fecha de vencimiento:</span>@Model.headerData.FechaVencimiento</p>
+                            <p><span>Dirección:</span>@Model.headerData.Direccion</p>
+                            <p><span>Moneda:</span>@Model.headerData.Moneda</p>
+                        </div>
+                    </section>
+                    <section>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Código</th>
+                                    <th>Cantidad</th>
+                                    <th style="text-align: left;">Descripción</th>
+                                    <th>P. Unit</th>
+                                    <th style="text-align: right;">Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model.detailData)
+                                {
+                                <tr>
+                                    <td>@row.ItemCodigo</td>
+                                    <td>@row.CantidadPedida</td>
+                                    <td>@row.Descripcion</td>
+                                    <td>@( Math.Truncate(row.Monto / row.CantidadPedida) )</td>
+                                    <td>@row.MontoFormateado</td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </section>
+                    <section style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                        <table class="importe">
+                            <tbody>
+                                <tr>
+                                    <td>Op. Gratuita</td>
+                                    <td>S/</td>
+                                    <td>0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Op. Inafecta</td>
+                                    <td>S/</td>
+                                    <td>0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Op. Grvada</td>
+                                    <td>S/</td>
+                                    <td>0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>IGV - 18%</td>
+                                    <td>S/</td>
+                                    <td>@Model.headerData.IGVFormateado</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 700;">IMPORTE TOTAL</td>
+                                    <td style="font-weight: 700;">S/</td>
+                                    <td style="font-weight: 700;">@Model.headerData.MontoTotalFormateado</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <section>
+                        <p style="font-weight: 700;" class="numeros">Son: @Model.headerData.Letras</p>
+                        <p class="observaciones">
+                            <span style="font-weight: 700;">Observaciones:</span>
+                            @( Model.headerData.Comentarios ?? "" )
+                        </p>
+                        <div style="margin-top: 0.625rem; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                            <p style="width: 66.666667%;">
+                                Representación impresa de la
+                                @Model.headerData.TipoDocumento
+                                electrónica. Consulte su documento en
+                                <a href="@Model.headerData.LinkComprobanteElectronico" target="_blank" style="font-weight: 700; text-decoration-line: underline; word-break: break-all; cursor: pointer;">@Model.headerData.LinkComprobanteElectronico</a>
+                            </p>
+                            <p>
+                                Conozca como hacerlo <a href="@Model.headerData.LinkManualUsuarioComprobante" target="_blank" style="font-weight: 700; text-decoration-line: underline; cursor: pointer;">aquí</a>
+                            </p>
+                        </div>
+                        <div style="width: 9rem; margin-top: 1rem; margin-bottom: 8rem; margin-left: auto; margin-right: auto;">
+                            <img src="@Model.headerData.QrComprobanteElectronico" />
+                        </div>
+                    </section>
+                </main>
+                <footer style="display: grid; align-items: center; grid-template-columns: repeat(6, minmax(0, 1fr));">
+                    <p style="align-items: center; grid-column: span 4 / span 4; grid-column-start: 2; line-height: 1; text-align: center; word-break: break-all; line-height: 1.5;">
+                        Autorizo para ser Emisor electrónico mediante la Resolución de Intendencia Nº 018-005-0003707/SUNAT<br />
+                        Para consultar el comprobante ingresar a: <a href="@Model.headerData.LinkComprobanteElectronico" target="_blank" style="word-break: break-all; cursor: pointer;">@Model.headerData.LinkComprobanteElectronico</a>
+                    </p>
+                    <p style="align-self: flex-end; grid-column-start: 6; text-align: right;">Pag.1</p>
+                </footer>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

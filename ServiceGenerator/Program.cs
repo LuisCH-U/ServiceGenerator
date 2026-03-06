@@ -13,6 +13,7 @@ builder.Services.Configure<ConnectionStrings>(builder.Configuration.GetSection("
 
 builder.Services.AddSingleton<ComprobanteRepository>();
 builder.Services.AddSingleton<GenerarPdfService>();
+builder.Services.AddSingleton<RazorService>();
 builder.Services.AddHostedService<Worker>();
 
 //Serilog Configuration

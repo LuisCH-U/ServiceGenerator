@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using ServiceGenerator.Models;
 using ServiceGenerator.Repository;
 using ServiceGenerator.Services;
+using System.Diagnostics;
 using System.IO;
 
 namespace ServiceGenerator
@@ -13,14 +15,16 @@ namespace ServiceGenerator
         private SemaphoreSlim _parallel;
         private readonly ComprobanteRepository _comprobanteRepository;
         private readonly GenerarPdfService _generarPdfService;
+        private readonly RazorService _razorService;
 
-        public Worker(ILogger<Worker> logger, IOptions<PdfOptionsRoute> pdfOptionsRoute, ComprobanteRepository comprobanteRepository, GenerarPdfService generarPdfService)
+        public Worker(ILogger<Worker> logger, IOptions<PdfOptionsRoute> pdfOptionsRoute, ComprobanteRepository comprobanteRepository, GenerarPdfService generarPdfService, RazorService razorService)
         {
             _logger = logger;
             _pdfOptionsRoute = pdfOptionsRoute.Value;
             _parallel = new SemaphoreSlim(_pdfOptionsRoute.MaxParallel);
             _comprobanteRepository = comprobanteRepository;
             _generarPdfService = generarPdfService;
+            _razorService = razorService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -73,8 +77,12 @@ namespace ServiceGenerator
                     Console.WriteLine("[ERROR] Error general en el worker: " + ex.Message);
                     _logger.LogError(ex, "[ERROR] Error general en el worker");
                 }
-
-                await Task.Delay(2000, stoppingToken);
+                finally
+                {
+                    Console.WriteLine("[INFO] Esperando 10 segundos antes de la siguiente consulta...");
+                    _logger.LogInformation("[INFO] Esperando 10 segundos antes de la siguiente consulta...");
+                    await Task.Delay(10000, stoppingToken);
+                }
             }
 
             Console.WriteLine("[FINALIZADO] Worker detenido.");
@@ -90,45 +98,30 @@ namespace ServiceGenerator
                 _logger.LogInformation("[INFO] Procesando comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
 
                 DatosComprobanteModel data = await _comprobanteRepository.ObtenerComprobantesDatosAsync(comprobante.TipoDocumento ?? "", comprobante.NumeroDocumento ?? "", comprobante.Sucursal ?? "");
+
                 //Console.WriteLine($"[INFO] Datos obtenidos para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Datos obtenidos para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
 
                 //Console.WriteLine($"[INFO] Obteniendo el template.html para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Obteniendo el template.html para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "template.html");
-                var html = await File.ReadAllTextAsync(templatePath, stoppingToken);
-
-                //Console.WriteLine($"[INFO] Reemplazando datos en el template para comprobante: {comprobante.NumeroDocumento}");
-                //_logger.LogInformation("[INFO] Reemplazando datos en el template para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                html = html.Replace("{{NumeroDocumento}}", data?._headerData?.NumeroDocumento ?? "");
-                html = html.Replace("{{companybusinessName}}", data?._companyData?.Razon_Social ?? "");
-                html = html.Replace("{{companyData.address}}", data?._companyData?.Direccion?.ToString() ?? "");
-                html = html.Replace("{{companyData.phone}}", data?._companyData?.Telefono?.ToString() ?? "");
-                html = html.Replace("{{campusAddress}}", data?._companyData?.Direccion?.ToString() ?? "");
-                html = html.Replace("{{CampusPhone}}", data?._companyData?.Telefono?.ToString() ?? "");
-                html = html.Replace("{{tipoDocumento}}", data?._headerData?.DocumentoReferencia?.ToString() ?? "");
-                html = html.Replace("{{rucCompany}}", data?._companyData?.Ruc?.ToString() ?? "");
-                html = html.Replace("{{headerDatadocumentNumber}}", data?._headerData?.NumeroDocumento?.ToString() ?? "");
-                html = html.Replace("{{headerData.campus}}", data?._headerData?.Sede?.ToString() ?? "");
-                html = html.Replace("{{headerData.businessName}}", data?._headerData?.RazonSocial?.ToString() ?? "");
-                html = html.Replace("{{headerData.ruc}}", data?._headerData?.Ruc?.ToString() ?? "");
-                html = html.Replace("{{headerData.documentDate}}", data?._headerData?.FechaDocumento?.ToString() ?? "");
-                html = html.Replace("{{headerData.dueDate}}", data?._headerData?.FechaVencimiento?.ToString() ?? "");
-                html = html.Replace("{{headerData.address}}", data?._headerData?.Direccion?.ToString() ?? "");
-                html = html.Replace("{{headerData.currency}}", data?._headerData?.Comentarios?.ToString() ?? "");
-
-                var rows = "";
+                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "template.cshtml");
+                //var html = await File.ReadAllTextAsync(templatePath, stoppingToken);
                 
-                //Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
-                //_logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                //foreach (var item in data._detailData)
-                //{
-                //    rows += $"<tr><td>{item.Concepto}</td><td>{item.Monto}</td></tr>";
-                //}
-
-                //Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
-                //_logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                html = html.Replace("{{Rows}}", rows);
+                switch (comprobante.TipoDocumento) {
+                    case "BV":
+                        data.headerData.TipoDocumento = "BOLETA DE VENTA";
+                        break;
+                    case "FC":
+                        data.headerData.TipoDocumento = "FACTURA DE VENTA";
+                        break; 
+                    case "NC":
+                        data.headerData.TipoDocumento = "NOTA DE CRÉDITO";
+                        break;
+                    case "ND":
+                        data.headerData.TipoDocumento = "NOTA DE DÉDITO";
+                        break;
+                }
+                var html = await _razorService.RenderAsync("Templates/template.cshtml", data);
 
                 //Console.WriteLine($"[INFO] Creando directorio de salida si no existe para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Creando directorio de salida si no existe para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
@@ -136,7 +129,7 @@ namespace ServiceGenerator
 
                 //Console.WriteLine($"[INFO] Generando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Generando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                var fileName = data?._headerData?.NumeroDocumento ?? $"{comprobante.NumeroDocumento}";
+                var fileName = data?.headerData?.NumeroDocumento ?? $"{comprobante.NumeroDocumento}";
 
                 //Console.WriteLine($"[INFO] Sanitizando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Sanitizando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
@@ -162,7 +155,7 @@ namespace ServiceGenerator
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Error al procesar comprobante Id: {comprobante.NumeroDocumento}. Error: {ex.Message}");
+                Console.WriteLine($"[ERROR] Error al procesar comprobante: {comprobante.NumeroDocumento}. Error: {ex.Message}");
                 _logger.LogError(ex, "[ERROR] Error al procesar comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
             }
             finally

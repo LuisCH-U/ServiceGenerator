@@ -8,9 +8,9 @@ namespace ServiceGenerator.Models
 {
     public class DatosComprobanteModel
     {
-        public CompanyModel? _companyData { get; set; }
-        public HeaderDocumentModel? _headerData { get; set; }
-        public List<DetailDocumentModel>? _detailData { get; set; }
+        public CompanyModel? companyData { get; set; }
+        public HeaderDocumentModel? headerData { get; set; }
+        public List<DetailDocumentModel>? detailData { get; set; }
     }
 
     public class CompanyModel
@@ -20,6 +20,7 @@ namespace ServiceGenerator.Models
         public string? Telefono { get; set; }
         public string? Ruc { get; set; }
         public string? Url_Qr { get; set; }
+        public string? Marca { get; set; }
     }
 
     public class HeaderDocumentModel
@@ -30,8 +31,8 @@ namespace ServiceGenerator.Models
         public string? NumeroDocumento { get; set; }
         public string? FechaDocumento { get; set; }
         public string? FechaVencimiento { get; set; }
-        public string? IGV { get; set; }
-        public string? MontoTotal { get; set; }
+        public decimal IGV { get; set; }
+        public decimal MontoTotal { get; set; }
         public string? Letras { get; set; }
         public string? DocumentoReferencia { get; set; }
         public string? NroDocumentoReferencia { get; set; }
@@ -46,16 +47,20 @@ namespace ServiceGenerator.Models
         public string? Moneda { get; set; }
         public string? EsIquitos { get; set; }
         public string? EsNuevaVersion { get; set; }
+        public string? TipoDocumento { get; set; }
+        public string IGVFormateado => IGV.ToString("F2");
+        public string MontoTotalFormateado => MontoTotal.ToString("F2");
     }
 
     public class DetailDocumentModel
     {
         public string? ItemCodigo { get; set; }
         public string? Descripcion { get; set; }
-        public decimal CantidadPedida { get; set; }
+        public int CantidadPedida { get; set; }
         public decimal Monto { get; set; }
+        public string MontoFormateado => Monto.ToString("F0");
 
-        public DetailDocumentModel(string ItemCodigo, string Descripcion, decimal CantidadPedida, decimal Monto)
+        public DetailDocumentModel(string ItemCodigo, string Descripcion, int CantidadPedida, decimal Monto)
         {
             this.ItemCodigo = ItemCodigo;
             this.Descripcion = Descripcion;

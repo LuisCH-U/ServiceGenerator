@@ -64,9 +64,9 @@ namespace ServiceGenerator.Repository
                 using var res = await conn.QueryMultipleAsync("SP_ObtenerDatosComprobantes", param, commandType: System.Data.CommandType.StoredProcedure);
                 
                 DatosComprobanteModel classOutComprobantes = new DatosComprobanteModel();
-                classOutComprobantes._companyData = await res.ReadFirstOrDefaultAsync<CompanyModel>();
-                classOutComprobantes._headerData = await res.ReadFirstOrDefaultAsync<HeaderDocumentModel>();
-                classOutComprobantes._detailData = (await res.ReadAsync<DetailDocumentModel>()).ToList();
+                classOutComprobantes.companyData = await res.ReadFirstOrDefaultAsync<CompanyModel>();
+                classOutComprobantes.headerData = await res.ReadFirstOrDefaultAsync<HeaderDocumentModel>();
+                classOutComprobantes.detailData = (await res.ReadAsync<DetailDocumentModel>()).ToList();
                 
                 //Console.WriteLine("[INFO] Se obtuvieron los datos completos");
                 //_logger.LogInformation("[INFO] Se obtuvieron lso datos completos");
