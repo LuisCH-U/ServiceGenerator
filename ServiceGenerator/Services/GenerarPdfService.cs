@@ -9,25 +9,52 @@ namespace ServiceGenerator.Services
 {
     public class GenerarPdfService
     {
+        private readonly ILogger<GenerarPdfService> _logger;
+
+        public GenerarPdfService(ILogger<GenerarPdfService> logger)
+        {
+            _logger = logger;
+        }
+
         public async Task GenerarPdf(string html, string path)
         {
-            using var playwright = await Playwright.CreateAsync();
-
-            var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            try
             {
-                Headless = true
-            });
+                using var playwright = await Playwright.CreateAsync();
 
-            var page = await browser.NewPageAsync();
+                await using var browser = await Playwright.CreateAsync().Result.Chromium.LaunchAsync();
+                await using var context = await browser.NewContextAsync();
+                var page = await context.NewPageAsync();
+                await page.SetContentAsync(html);
+                await page.PdfAsync(new PagePdfOptions
+                {
+                    Path = path,
+                    Format = "A4",
+                    PrintBackground = true
+                });
 
-            await page.SetContentAsync(html);
+                _logger.LogInformation("PDF generado en: {RutaPdf}", path);
+                //var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+                //{
+                //    Headless = true
+                //});
 
-            await page.PdfAsync(new PagePdfOptions
+                //var page = await browser.NewPageAsync();
+
+                //await page.SetContentAsync(html);
+
+                //await page.PdfAsync(new PagePdfOptions
+                //{
+                //    Path = path,
+                //    Format = "A4",
+                //    PrintBackground = true
+                //});
+            }
+            catch (Exception ex)
             {
-                Path = path,
-                Format = "A4",
-                PrintBackground = true
-            });
+                _logger.LogError(ex, "Error al generar PDF");
+                throw;
+            }
         }
     }
 }

@@ -98,9 +98,22 @@ namespace ServiceGenerator
 
                 Console.WriteLine($"[INFO] Reemplazando datos en el template para comprobante: {comprobante.NumeroDocumento}");
                 _logger.LogInformation("[INFO] Reemplazando datos en el template para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                //html = html.Replace("{{Alumno}}", data._headerDocument?.Alumno ?? "");
-                //html = html.Replace("{{DNI}}", data._headerDocument?.DNI ?? "");
-                //html = html.Replace("{{Total}}", data._headerDocument?.Total?.ToString() ?? "");
+                html = html.Replace("{{NumeroDocumento}}", data?._headerData?.NumeroDocumento ?? "");
+                html = html.Replace("{{companybusinessName}}", data?._companyData?.Razon_Social ?? "");
+                html = html.Replace("{{companyData.address}}", data?._companyData?.Direccion?.ToString() ?? "");
+                html = html.Replace("{{companyData.phone}}", data?._companyData?.Telefono?.ToString() ?? "");
+                html = html.Replace("{{campusAddress}}", data?._companyData?.Direccion?.ToString() ?? "");
+                html = html.Replace("{{CampusPhone}}", data?._companyData?.Telefono?.ToString() ?? "");
+                html = html.Replace("{{tipoDocumento}}", data?._headerData?.DocumentoReferencia?.ToString() ?? "");
+                html = html.Replace("{{rucCompany}}", data?._companyData?.Ruc?.ToString() ?? "");
+                html = html.Replace("{{headerDatadocumentNumber}}", data?._headerData?.NumeroDocumento?.ToString() ?? "");
+                html = html.Replace("{{headerData.campus}}", data?._headerData?.Sede?.ToString() ?? "");
+                html = html.Replace("{{headerData.businessName}}", data?._headerData?.RazonSocial?.ToString() ?? "");
+                html = html.Replace("{{headerData.ruc}}", data?._headerData?.Ruc?.ToString() ?? "");
+                html = html.Replace("{{headerData.documentDate}}", data?._headerData?.FechaDocumento?.ToString() ?? "");
+                html = html.Replace("{{headerData.dueDate}}", data?._headerData?.FechaVencimiento?.ToString() ?? "");
+                html = html.Replace("{{headerData.address}}", data?._headerData?.Direccion?.ToString() ?? "");
+                html = html.Replace("{{headerData.currency}}", data?._headerData?.Comentarios?.ToString() ?? "");
 
                 var rows = "";
                 
