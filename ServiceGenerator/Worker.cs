@@ -202,41 +202,4 @@ namespace ServiceGenerator
             }
         }
     }
-
-    //protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    //{
-    //    while (!stoppingToken.IsCancellationRequested)
-    //    {
-    //        try
-    //        {
-    //            var data = await _comprobanteRepository.ObtenerComprobantesAsync();
-
-    //            var html = await File.ReadAllTextAsync("Templates/template.html");
-
-    //            //html = html.Replace("{{Alumno}}", data.header.Alumno);
-    //            //html = html.Replace("{{DNI}}", data.header.DNI);
-    //            //html = html.Replace("{{Total}}", data.header.Total.ToString());
-
-    //            var rows = "";
-
-    //            foreach (var item in data._detailData)
-    //            {
-    //                //rows += $"<tr><td>{item.Concepto}</td><td>{item.Monto}</td></tr>";
-    //            }
-
-    //            html = html.Replace("{{Rows}}", rows);
-
-    //            var pdfPath = _pdfOptionsRoute.OutputRoot;
-
-    //            await _generarPdfService.GenerarPdf(html, pdfPath);
-
-    //            _logger.LogInformation("PDF generado correctamente en: {Ruta}", pdfPath);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Error al generar PDF");
-    //            throw;
-    //        }
-    //    }
-    //}
 }

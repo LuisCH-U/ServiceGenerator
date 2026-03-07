@@ -36,8 +36,8 @@ namespace ServiceGenerator.Services
                     "--no-sandbox"
                 }
             });
-
             _logger.LogInformation("Playwright y Chromium inicializados.");
+            Console.WriteLine("Playwright y Chromium inicializados.");
         }
 
         public async Task GenerarPdf(string html, string path)
@@ -79,6 +79,7 @@ namespace ServiceGenerator.Services
             _playwright?.Dispose();
         }
 
+        [Obsolete]
         public async Task GenerarPdfTwo(string html, string path)
         {
             try
@@ -110,12 +111,16 @@ namespace ServiceGenerator.Services
             }
         }
 
+        [Obsolete]
         public async Task GenerarPdfOne(string html, string path)
         {
             try
             {
                 using var playwright = await Playwright.CreateAsync();
-
+                //var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+                //{
+                //    Headless = true
+                //});
                 await using var browser = await Playwright.CreateAsync().Result.Chromium.LaunchAsync();
                 await using var context = await browser.NewContextAsync();
                 var page = await context.NewPageAsync();
@@ -128,21 +133,6 @@ namespace ServiceGenerator.Services
                 });
 
                 _logger.LogInformation("PDF generado en: {RutaPdf}", path);
-                //var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-                //{
-                //    Headless = true
-                //});
-
-                //var page = await browser.NewPageAsync();
-
-                //await page.SetContentAsync(html);
-
-                //await page.PdfAsync(new PagePdfOptions
-                //{
-                //    Path = path,
-                //    Format = "A4",
-                //    PrintBackground = true
-                //});
             }
             catch (Exception ex)
             {
