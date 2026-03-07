@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using ServiceGenerator.Models;
 using ServiceGenerator.Repository;
 using ServiceGenerator.Services;
+using System.Diagnostics;
 using System.IO;
 
 namespace ServiceGenerator
@@ -13,20 +15,26 @@ namespace ServiceGenerator
         private SemaphoreSlim _parallel;
         private readonly ComprobanteRepository _comprobanteRepository;
         private readonly GenerarPdfService _generarPdfService;
+        private readonly RazorService _razorService;
+        private int contadorlote = 0;
 
-        public Worker(ILogger<Worker> logger, IOptions<PdfOptionsRoute> pdfOptionsRoute, ComprobanteRepository comprobanteRepository, GenerarPdfService generarPdfService)
+        public Worker(ILogger<Worker> logger, IOptions<PdfOptionsRoute> pdfOptionsRoute, ComprobanteRepository comprobanteRepository, GenerarPdfService generarPdfService, RazorService razorService)
         {
             _logger = logger;
             _pdfOptionsRoute = pdfOptionsRoute.Value;
             _parallel = new SemaphoreSlim(_pdfOptionsRoute.MaxParallel);
             _comprobanteRepository = comprobanteRepository;
             _generarPdfService = generarPdfService;
+            _razorService = razorService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Console.WriteLine("[INICIO] Worker iniciado. Esperando comprobantes...");
-            _logger.LogInformation("[INICIO] Worker iniciado. Esperando comprobantes...");
+            Console.WriteLine("[INICIO] Worker iniciado. Esperando comprobantes..." + " -> " + DateTime.Now);
+            _logger.LogInformation("[INICIO] Worker iniciado. Esperando comprobantes..." + " -> " + DateTime.Now);
+
+            // Inicializar el servicio de generación de PDF antes de entrar al ciclo principal para evitar inicializaciones repetidas
+            await _generarPdfService.InicializarAsync();
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -56,25 +64,58 @@ namespace ServiceGenerator
                     
                     Console.WriteLine($"[INFO] Comprobantes divididos en {lotes.Count} lotes de tamaño máximo {_pdfOptionsRoute.BatchSize}.");
                     _logger.LogInformation("[INFO] Comprobantes divididos en {LotesCount} lotes de tamaño máximo {BatchSize}.", lotes.Count, _pdfOptionsRoute.BatchSize);
-
+                    
                     foreach (var lote in lotes)
                     {
                         Console.WriteLine($"[INFO] Procesando lote con {lote.Count} comprobantes...");
                         _logger.LogInformation("[INFO] Procesando lote con {Count} comprobantes...", lote.Count);
                         var tasks = lote.Select(c => ProcesarComprobanteAsync(c, stoppingToken));
                         await Task.WhenAll(tasks);
+
+                        var Ok = lote.Where(c => c.ProcesoOK).ToList();
+                        var Error = lote.Where(c => !c.ProcesoOK).ToList();
+
+                        Console.WriteLine($"[INFO] {Ok.Count} comprobantes exitosos, {Error.Count} con error.");
+                        _logger.LogInformation("[INFO] {Exitosos} exitosos, {Errores} con error.", Ok.Count, Error.Count);
+
+                        if (Ok.Count > 0)
+                        {
+                            Console.WriteLine($"[INFO] Actualizando {Ok.Count} comprobantes del lote...");
+                            _logger.LogInformation("[INFO] Actualizando {Count} comprobantes del lote...", Ok.Count);
+                            
+                            var actualizados = await _comprobanteRepository.ActualizaComprobantesLoteAsync(lote);
+                            
+                            Console.WriteLine($"[INFO] {actualizados} comprobantes actualizados correctamente.");
+                            _logger.LogInformation("[INFO] {Count} comprobantes actualizados correctamente.", actualizados);
+                        }
+
+                        contadorlote += Ok.Count;
                     }
 
-                    Console.WriteLine("[FINALIZADO] Proceso finalizado. Total registros: " + comprobantes.Count);
-                    _logger.LogInformation("[FINALIZADO] Proceso finalizado. Total registros: {Total}", comprobantes);
+                    Console.WriteLine("[FINALIZADO] Proceso finalizado. Total registros: " + contadorlote + " -> " + DateTime.Now); 
+                    _logger.LogInformation("[FINALIZADO] Proceso finalizado. Total registros: {Total} -> {Fecha}", contadorlote, DateTime.Now);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("[INFO] Worker cancelado.");
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("[ERROR] Error general en el worker: " + ex.Message);
-                    _logger.LogError(ex, "[ERROR] Error general en el worker");
+                    Console.WriteLine("[ERROR] Error general en el worker: " + ex.Message + " -> " + DateTime.Now);
+                    _logger.LogError(ex, "[ERROR] Error general en el worker" + " -> " + DateTime.Now);
                 }
 
-                await Task.Delay(2000, stoppingToken);
+                try
+                {
+                    Console.WriteLine("[INFO] Esperando 1 Hora antes de la siguiente consulta..." + " -> " + DateTime.Now);
+                    _logger.LogInformation("[INFO] Esperando 1 Hora antes de la siguiente consulta... -> {Fecha}", DateTime.Now);
+                    await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
 
             Console.WriteLine("[FINALIZADO] Worker detenido.");
@@ -90,45 +131,30 @@ namespace ServiceGenerator
                 _logger.LogInformation("[INFO] Procesando comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
 
                 DatosComprobanteModel data = await _comprobanteRepository.ObtenerComprobantesDatosAsync(comprobante.TipoDocumento ?? "", comprobante.NumeroDocumento ?? "", comprobante.Sucursal ?? "");
+
                 //Console.WriteLine($"[INFO] Datos obtenidos para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Datos obtenidos para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
 
                 //Console.WriteLine($"[INFO] Obteniendo el template.html para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Obteniendo el template.html para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "template.html");
-                var html = await File.ReadAllTextAsync(templatePath, stoppingToken);
-
-                //Console.WriteLine($"[INFO] Reemplazando datos en el template para comprobante: {comprobante.NumeroDocumento}");
-                //_logger.LogInformation("[INFO] Reemplazando datos en el template para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                html = html.Replace("{{NumeroDocumento}}", data?._headerData?.NumeroDocumento ?? "");
-                html = html.Replace("{{companybusinessName}}", data?._companyData?.Razon_Social ?? "");
-                html = html.Replace("{{companyData.address}}", data?._companyData?.Direccion?.ToString() ?? "");
-                html = html.Replace("{{companyData.phone}}", data?._companyData?.Telefono?.ToString() ?? "");
-                html = html.Replace("{{campusAddress}}", data?._companyData?.Direccion?.ToString() ?? "");
-                html = html.Replace("{{CampusPhone}}", data?._companyData?.Telefono?.ToString() ?? "");
-                html = html.Replace("{{tipoDocumento}}", data?._headerData?.DocumentoReferencia?.ToString() ?? "");
-                html = html.Replace("{{rucCompany}}", data?._companyData?.Ruc?.ToString() ?? "");
-                html = html.Replace("{{headerDatadocumentNumber}}", data?._headerData?.NumeroDocumento?.ToString() ?? "");
-                html = html.Replace("{{headerData.campus}}", data?._headerData?.Sede?.ToString() ?? "");
-                html = html.Replace("{{headerData.businessName}}", data?._headerData?.RazonSocial?.ToString() ?? "");
-                html = html.Replace("{{headerData.ruc}}", data?._headerData?.Ruc?.ToString() ?? "");
-                html = html.Replace("{{headerData.documentDate}}", data?._headerData?.FechaDocumento?.ToString() ?? "");
-                html = html.Replace("{{headerData.dueDate}}", data?._headerData?.FechaVencimiento?.ToString() ?? "");
-                html = html.Replace("{{headerData.address}}", data?._headerData?.Direccion?.ToString() ?? "");
-                html = html.Replace("{{headerData.currency}}", data?._headerData?.Comentarios?.ToString() ?? "");
-
-                var rows = "";
+                //var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "template.cshtml");
+                //var html = await File.ReadAllTextAsync(templatePath, stoppingToken);
                 
-                //Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
-                //_logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                //foreach (var item in data._detailData)
-                //{
-                //    rows += $"<tr><td>{item.Concepto}</td><td>{item.Monto}</td></tr>";
-                //}
-
-                //Console.WriteLine($"[INFO] Reemplazando filas para comprobante: {comprobante.NumeroDocumento}");
-                //_logger.LogInformation("[INFO] Reemplazando filas para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                html = html.Replace("{{Rows}}", rows);
+                switch (comprobante.TipoDocumento) {
+                    case "BV":
+                        data.headerData.TipoDocumento = "BOLETA DE VENTA";
+                        break;
+                    case "FC":
+                        data.headerData.TipoDocumento = "FACTURA DE VENTA";
+                        break; 
+                    case "NC":
+                        data.headerData.TipoDocumento = "NOTA DE CRÉDITO";
+                        break;
+                    case "ND":
+                        data.headerData.TipoDocumento = "NOTA DE DÉDITO";
+                        break;
+                }
+                var html = await _razorService.RenderAsync("Templates/template.cshtml", data);
 
                 //Console.WriteLine($"[INFO] Creando directorio de salida si no existe para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Creando directorio de salida si no existe para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
@@ -136,7 +162,7 @@ namespace ServiceGenerator
 
                 //Console.WriteLine($"[INFO] Generando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Generando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                var fileName = data?._headerData?.NumeroDocumento ?? $"{comprobante.NumeroDocumento}";
+                var fileName = data?.headerData?.NumeroDocumento ?? $"{comprobante.NumeroDocumento}";
 
                 //Console.WriteLine($"[INFO] Sanitizando nombre de archivo para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Sanitizando nombre de archivo para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
@@ -154,16 +180,19 @@ namespace ServiceGenerator
                 
                 await _generarPdfService.GenerarPdf(html, pdfPath);
 
+                comprobante.ProcesoOK = true;
+
                 //Console.WriteLine($"[INFO] PDF generado correctamente para comprobante: {comprobante.NumeroDocumento} en ruta: {pdfPath}");
                 //_logger.LogInformation("[INFO] PDF generado correctamente para comprobante: {NumeroDocumento} en ruta: {Ruta}", comprobante.NumeroDocumento, pdfPath);
 
-                Console.WriteLine($"[INFO] PDF generado correctamente en: {pdfPath}");
-                _logger.LogInformation("[INFO] PDF generado correctamente en: {Ruta}", pdfPath);
+                Console.WriteLine($"[INFO] PDF generado correctamente en: {pdfPath}" + " -> " + DateTime.Now);
+                _logger.LogInformation("[INFO] PDF generado correctamente en: {Ruta}", pdfPath + " -> " + DateTime.Now);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Error al procesar comprobante Id: {comprobante.NumeroDocumento}. Error: {ex.Message}");
+                Console.WriteLine($"[ERROR] Error al procesar comprobante: {comprobante.NumeroDocumento}. Error: {ex.Message}");
                 _logger.LogError(ex, "[ERROR] Error al procesar comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                comprobante.ProcesoOK = false;
             }
             finally
             {
@@ -173,41 +202,4 @@ namespace ServiceGenerator
             }
         }
     }
-
-    //protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    //{
-    //    while (!stoppingToken.IsCancellationRequested)
-    //    {
-    //        try
-    //        {
-    //            var data = await _comprobanteRepository.ObtenerComprobantesAsync();
-
-    //            var html = await File.ReadAllTextAsync("Templates/template.html");
-
-    //            //html = html.Replace("{{Alumno}}", data.header.Alumno);
-    //            //html = html.Replace("{{DNI}}", data.header.DNI);
-    //            //html = html.Replace("{{Total}}", data.header.Total.ToString());
-
-    //            var rows = "";
-
-    //            foreach (var item in data._detailData)
-    //            {
-    //                //rows += $"<tr><td>{item.Concepto}</td><td>{item.Monto}</td></tr>";
-    //            }
-
-    //            html = html.Replace("{{Rows}}", rows);
-
-    //            var pdfPath = _pdfOptionsRoute.OutputRoot;
-
-    //            await _generarPdfService.GenerarPdf(html, pdfPath);
-
-    //            _logger.LogInformation("PDF generado correctamente en: {Ruta}", pdfPath);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Error al generar PDF");
-    //            throw;
-    //        }
-    //    }
-    //}
 }

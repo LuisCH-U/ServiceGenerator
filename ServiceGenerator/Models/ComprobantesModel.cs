@@ -15,6 +15,7 @@ namespace ServiceGenerator.Models
         public string? Sucursal { get; set; }
         public string? Nombre { get; set; }
         public string? Moneda { get; set; }
+        public bool ProcesoOK { get; set; } = false;
     }
 
 }
