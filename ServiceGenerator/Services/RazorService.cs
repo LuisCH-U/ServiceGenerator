@@ -11,16 +11,28 @@ namespace ServiceGenerator.Services
     {
         private readonly ILogger<RazorService> _logger;
 
-        private RazorLightEngine _razorLightEngine;
+        private readonly RazorLightEngine _razorLightEngine;
 
         public RazorService(ILogger<RazorService> logger)
         {
             _logger = logger;
-            _razorLightEngine = new RazorLightEngineBuilder().UseFileSystemProject(Directory.GetCurrentDirectory()).UseMemoryCachingProvider().Build();
+            _razorLightEngine = new RazorLightEngineBuilder()
+                .UseFileSystemProject(Directory.GetCurrentDirectory())
+                .UseMemoryCachingProvider()
+                .Build();
         }
+
         public async Task<string> RenderAsync<T>(string templatePath, T model)
-        { 
-            return await _razorLightEngine.CompileRenderAsync(templatePath, model);
+        {
+            try
+            {
+                return await _razorLightEngine.CompileRenderAsync(templatePath, model);
+            }
+            catch (Exception)
+            {
+                _logger.LogError("Error renderizando template Razor: {TemplatePath}", templatePath);
+                throw;
+            }
         }
     }
 }

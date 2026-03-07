@@ -16,6 +16,7 @@ namespace ServiceGenerator
         private readonly ComprobanteRepository _comprobanteRepository;
         private readonly GenerarPdfService _generarPdfService;
         private readonly RazorService _razorService;
+        private int contadorlote = 0;
 
         public Worker(ILogger<Worker> logger, IOptions<PdfOptionsRoute> pdfOptionsRoute, ComprobanteRepository comprobanteRepository, GenerarPdfService generarPdfService, RazorService razorService)
         {
@@ -31,6 +32,9 @@ namespace ServiceGenerator
         {
             Console.WriteLine("[INICIO] Worker iniciado. Esperando comprobantes..." + " -> " + DateTime.Now);
             _logger.LogInformation("[INICIO] Worker iniciado. Esperando comprobantes..." + " -> " + DateTime.Now);
+
+            // Inicializar el servicio de generación de PDF antes de entrar al ciclo principal para evitar inicializaciones repetidas
+            await _generarPdfService.InicializarAsync();
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -60,28 +64,57 @@ namespace ServiceGenerator
                     
                     Console.WriteLine($"[INFO] Comprobantes divididos en {lotes.Count} lotes de tamaño máximo {_pdfOptionsRoute.BatchSize}.");
                     _logger.LogInformation("[INFO] Comprobantes divididos en {LotesCount} lotes de tamaño máximo {BatchSize}.", lotes.Count, _pdfOptionsRoute.BatchSize);
-
+                    
                     foreach (var lote in lotes)
                     {
                         Console.WriteLine($"[INFO] Procesando lote con {lote.Count} comprobantes...");
                         _logger.LogInformation("[INFO] Procesando lote con {Count} comprobantes...", lote.Count);
                         var tasks = lote.Select(c => ProcesarComprobanteAsync(c, stoppingToken));
                         await Task.WhenAll(tasks);
+
+                        var Ok = lote.Where(c => c.ProcesoOK).ToList();
+                        var Error = lote.Where(c => !c.ProcesoOK).ToList();
+
+                        Console.WriteLine($"[INFO] {Ok.Count} comprobantes exitosos, {Error.Count} con error.");
+                        _logger.LogInformation("[INFO] {Exitosos} exitosos, {Errores} con error.", Ok.Count, Error.Count);
+
+                        if (Ok.Count > 0)
+                        {
+                            Console.WriteLine($"[INFO] Actualizando {Ok.Count} comprobantes del lote...");
+                            _logger.LogInformation("[INFO] Actualizando {Count} comprobantes del lote...", Ok.Count);
+                            
+                            var actualizados = await _comprobanteRepository.ActualizaComprobantesLoteAsync(lote);
+                            
+                            Console.WriteLine($"[INFO] {actualizados} comprobantes actualizados correctamente.");
+                            _logger.LogInformation("[INFO] {Count} comprobantes actualizados correctamente.", actualizados);
+                        }
+
+                        contadorlote += Ok.Count;
                     }
 
-                    Console.WriteLine("[FINALIZADO] Proceso finalizado. Total registros: " + comprobantes.Count + " -> " + DateTime.Now);
-                    _logger.LogInformation("[FINALIZADO] Proceso finalizado. Total registros: {Total}", comprobantes +" -> " + DateTime.Now);
+                    Console.WriteLine("[FINALIZADO] Proceso finalizado. Total registros: " + contadorlote + " -> " + DateTime.Now); 
+                    _logger.LogInformation("[FINALIZADO] Proceso finalizado. Total registros: {Total} -> {Fecha}", contadorlote, DateTime.Now);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("[INFO] Worker cancelado.");
+                    break;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("[ERROR] Error general en el worker: " + ex.Message + " -> " + DateTime.Now);
                     _logger.LogError(ex, "[ERROR] Error general en el worker" + " -> " + DateTime.Now);
                 }
-                finally
+
+                try
                 {
                     Console.WriteLine("[INFO] Esperando 1 Hora antes de la siguiente consulta..." + " -> " + DateTime.Now);
-                    _logger.LogInformation("[INFO] Esperando 1 Hora antes de la siguiente consulta..." + " -> " + DateTime.Now);
-                    await Task.Delay(3600000, stoppingToken);
+                    _logger.LogInformation("[INFO] Esperando 1 Hora antes de la siguiente consulta... -> {Fecha}", DateTime.Now);
+                    await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
                 }
             }
 
@@ -104,7 +137,7 @@ namespace ServiceGenerator
 
                 //Console.WriteLine($"[INFO] Obteniendo el template.html para comprobante: {comprobante.NumeroDocumento}");
                 //_logger.LogInformation("[INFO] Obteniendo el template.html para comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "template.cshtml");
+                //var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "template.cshtml");
                 //var html = await File.ReadAllTextAsync(templatePath, stoppingToken);
                 
                 switch (comprobante.TipoDocumento) {
@@ -147,6 +180,8 @@ namespace ServiceGenerator
                 
                 await _generarPdfService.GenerarPdf(html, pdfPath);
 
+                comprobante.ProcesoOK = true;
+
                 //Console.WriteLine($"[INFO] PDF generado correctamente para comprobante: {comprobante.NumeroDocumento} en ruta: {pdfPath}");
                 //_logger.LogInformation("[INFO] PDF generado correctamente para comprobante: {NumeroDocumento} en ruta: {Ruta}", comprobante.NumeroDocumento, pdfPath);
 
@@ -157,6 +192,7 @@ namespace ServiceGenerator
             {
                 Console.WriteLine($"[ERROR] Error al procesar comprobante: {comprobante.NumeroDocumento}. Error: {ex.Message}");
                 _logger.LogError(ex, "[ERROR] Error al procesar comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                comprobante.ProcesoOK = false;
             }
             finally
             {

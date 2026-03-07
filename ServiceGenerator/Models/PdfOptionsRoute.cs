@@ -8,7 +8,7 @@ namespace ServiceGenerator.Models
 {
     public class PdfOptionsRoute
     {
-        public string OutputRoot { get; set; } = @"D:\PDF_Comprobantes\EVA";
+        public string? OutputRoot { get; set; }
         public int MaxParallel { get; set; } = 4;
         public int BatchSize { get; set; } = 50;
     }

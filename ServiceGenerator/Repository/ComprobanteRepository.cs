@@ -80,5 +80,55 @@ namespace ServiceGenerator.Repository
                 throw;
             }
         }
+
+        public async Task<int> ActualizaComprobantesLoteAsync(List<ComprobantesModel> comprobantes)
+        {
+            int actualizadosTotales = 0;
+
+            foreach (var comprobante in comprobantes)
+            {
+                try
+                {
+                    var resultado = await ActualizaComprobantesGeneradosAsync(comprobante.TipoDocumento ?? "", comprobante.NumeroDocumento ?? "", comprobante.Sucursal ?? "");
+                    actualizadosTotales += resultado;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[ERROR] Error actualizando comprobante: {NumeroDocumento}", comprobante.NumeroDocumento);
+                }
+            }
+
+            return actualizadosTotales;
+        }
+
+        public async Task<int> ActualizaComprobantesGeneradosAsync(string typeDocument, string numberDocument, string sucursal) 
+        {
+            try
+            {
+                using var conn = new SqlConnection(_sqlConn);
+                //Console.WriteLine("[INFO] Conexión a la base de datos establecida exitosamente.");
+                //_logger.LogInformation("[INFO] Conexión a la base de datos establecida exitosamente.");
+                //Console.WriteLine("[INFO] Ejecutando el procedimiento almacenado SP_ActualizarComprobantesGenerados...");
+                //_logger.LogInformation("[INFO] Ejecutando el procedimiento almacenado SP_ActualizarComprobantesGenerados...");
+                var param = new DynamicParameters();
+                param.Add("@TipoDocumento", typeDocument, DbType.String);
+                param.Add("@NumeroDocumento", numberDocument, DbType.String);
+                param.Add("@Sucursal", sucursal, DbType.String);
+                param.Add("@RetVal", dbType: DbType.Int32, direction: ParameterDirection.Output);
+                var res = await conn.ExecuteAsync("SP_ActualizarComprobantesGenerados", param, commandType: System.Data.CommandType.StoredProcedure);
+                res = param.Get<int>("@RetVal");
+                //Console.WriteLine("[INFO] Se actualizaron los comprobantes generados correctamente");
+                //_logger.LogInformation("[INFO] Se actualizaron los comprobantes generados correctamente");
+
+                return res;
+
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("[ERROR] Error al actualizar los comprobantes generados {numberDocument}: ", numberDocument);
+                _logger.LogError("[ERROR] Error al actualizar los comprobantes generados: " + numberDocument);
+                throw;
+            }
+        }
     }
 }
