@@ -46,7 +46,7 @@ namespace ServiceGenerator
                     Console.WriteLine($"[INFO] Comprobantes obtenidos: {comprobantes.Count}");
                     _logger.LogInformation("[INFO] Comprobantes obtenidos: {Count}", comprobantes.Count);
 
-                    if (comprobantes == null)
+                    if (comprobantes == null || comprobantes.Count() > 0)
                     {
                         Console.WriteLine("[ERROR] No se pudieron obtener los comprobantes.");
                         _logger.LogInformation("[ERROR] No hay comprobantes pendientes.");
@@ -80,10 +80,10 @@ namespace ServiceGenerator
 
                         if (Ok.Count > 0)
                         {
-                            Console.WriteLine($"[INFO] Actualizando {Ok.Count} comprobantes del lote...");
-                            _logger.LogInformation("[INFO] Actualizando {Count} comprobantes del lote...", Ok.Count);
+                            Console.WriteLine($"[INFO] Actualizando {Ok.Count} comprobantes del lote {lote}...");
+                            _logger.LogInformation("[INFO] Actualizando {Count} comprobantes del lote {lote}...", Ok.Count, lote);
                             
-                            var actualizados = await _comprobanteRepository.ActualizaComprobantesLoteAsync(lote);
+                            var actualizados = await _comprobanteRepository.ActualizaComprobantesLoteAsync(Ok);
                             
                             Console.WriteLine($"[INFO] {actualizados} comprobantes actualizados correctamente.");
                             _logger.LogInformation("[INFO] {Count} comprobantes actualizados correctamente.", actualizados);
