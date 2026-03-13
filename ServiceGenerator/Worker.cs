@@ -46,7 +46,7 @@ namespace ServiceGenerator
                     Console.WriteLine($"[INFO] Comprobantes obtenidos: {comprobantes.Count}");
                     _logger.LogInformation("[INFO] Comprobantes obtenidos: {Count}", comprobantes.Count);
 
-                    if (comprobantes == null || comprobantes.Count() > 0)
+                    if (comprobantes == null || comprobantes.Count() <= 0)
                     {
                         Console.WriteLine("[ERROR] No se pudieron obtener los comprobantes.");
                         _logger.LogInformation("[ERROR] No hay comprobantes pendientes.");
