@@ -6,6 +6,7 @@ using ServiceGenerator.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
+builder.Services.AddWindowsService();
 
 builder.Services.Configure<PdfOptionsRoute>(builder.Configuration.GetSection("PdfOptionsRoute"));
 //builder.Services.Configure<ConnectionStrings>(builder.Configuration.GetSection("Academico"));
@@ -37,7 +38,8 @@ var host = builder.Build();
 try
 {
     Log.Information("[INICIO] Iniciando el servicio");
-    host.Run();
+    //host.Run();
+    await host.RunAsync();
 }
 catch (Exception ex)
 {

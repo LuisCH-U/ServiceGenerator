@@ -50,7 +50,11 @@ namespace ServiceGenerator
                     {
                         Console.WriteLine("[ERROR] No se pudieron obtener los comprobantes.");
                         _logger.LogInformation("[ERROR] No hay comprobantes pendientes.");
-                        await Task.Delay(5000, stoppingToken);
+
+                        Console.WriteLine("[INFO] Reintentando obtener comprobantes después de 2 minutos...");
+                        _logger.LogInformation("[INFO] Reintentando obtener comprobantes después de 2 minutos...");
+
+                        await Task.Delay(TimeSpan.FromMinutes(2), stoppingToken);
                         continue;
                     }
 

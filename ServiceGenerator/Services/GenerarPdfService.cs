@@ -25,19 +25,29 @@ namespace ServiceGenerator.Services
             if (_playwright != null && _browser != null)
                 return;
 
-            _playwright = await Playwright.CreateAsync();
-            _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            try
             {
-                Headless = true,
-                Args = new[]
+                _playwright = await Playwright.CreateAsync();
+                _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
+                    Headless = true,
+                    Args = new[]
+                    {
                     "--disable-dev-shm-usage",
                     "--disable-gpu",
-                    "--no-sandbox"
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
                 }
-            });
-            _logger.LogInformation("Playwright y Chromium inicializados.");
-            Console.WriteLine("Playwright y Chromium inicializados.");
+                });
+                _logger.LogInformation("Playwright y Chromium inicializados.");
+                Console.WriteLine("Playwright y Chromium inicializados.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al inicializar Playwright: {ex.Message}");
+                _logger.LogError(ex, "Error al inicializar Playwright");
+                throw;
+            }
         }
 
         public async Task GenerarPdf(string html, string path)
