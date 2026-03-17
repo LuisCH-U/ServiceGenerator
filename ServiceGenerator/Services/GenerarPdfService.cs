@@ -1,6 +1,7 @@
 ﻿using Microsoft.Playwright;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,10 +45,32 @@ namespace ServiceGenerator.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al inicializar Playwright: {ex.Message}");
-                _logger.LogError(ex, "Error al inicializar Playwright");
-                throw;
+                _logger.LogError(ex, "Error al inicializar Playwright. Intentando instalar navegadores...");
+
+                // Intentar instalar los navegadores automáticamente
+                await InstalarNavegadoresAsync();
+
+                // Reintentar después de la instalación
+                _playwright = await Playwright.CreateAsync();
+                _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+                {
+                    Headless = true,
+                    Args = new[]
+                    {
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                    }
+                });
+                _logger.LogInformation("Playwright y Chromium inicializados después de instalación.");
             }
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"Error al inicializar Playwright: {ex.Message}");
+            //    _logger.LogError(ex, "Error al inicializar Playwright");
+            //    throw;
+            //}
         }
 
         public async Task GenerarPdf(string html, string path)
@@ -87,6 +110,51 @@ namespace ServiceGenerator.Services
                 await _browser.CloseAsync();
 
             _playwright?.Dispose();
+        }
+
+        private async Task InstalarNavegadoresAsync()
+        {
+            try
+            {
+                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                var playwrightScript = Path.Combine(baseDirectory, "playwright.ps1");
+
+                _logger.LogInformation("Instalando navegadores de Playwright desde: {Path}", playwrightScript);
+
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = "pwsh.exe",
+                    Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{playwrightScript}\" install",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(processInfo))
+                {
+                    if (process != null)
+                    {
+                        var output = await process.StandardOutput.ReadToEndAsync();
+                        var error = await process.StandardError.ReadToEndAsync();
+                        await process.WaitForExitAsync();
+
+                        if (process.ExitCode == 0)
+                        {
+                            _logger.LogInformation("Navegadores instalados exitosamente.");
+                        }
+                        else
+                        {
+                            _logger.LogError("Error al instalar navegadores: {Error}", error);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Excepción al intentar instalar navegadores automáticamente.");
+                throw;
+            }
         }
 
         [Obsolete]
